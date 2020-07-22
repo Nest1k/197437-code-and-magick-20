@@ -2,13 +2,12 @@
 (function () {
   var PLAYERS_QUANTITIY = 4;
 
-  // document.querySelector('.setup').classList.remove('hidden');
+  var userDialog = document.querySelector('.setup');
+  // .classList.remove('hidden');
 
   var similarListElement = document.querySelector('.setup-similar-list');
   var similarWizardTemplate = document.querySelector('#similar-wizard-template').content.querySelector('.setup-similar-item');
 
-  var names = ['Иван', 'Хуан', 'Себастьян', 'Мария', 'Кристоф', 'Виктор', 'Юлия', 'Люпита', 'Вашингтон'];
-  var lastNames = [' да Марья', ' Верон', ' Мирабелла', ' Вальц', ' Онопко', ' Топольницкая', ' Нионго', ' Ирвинг'];
   var coatColors = ['rgb(101, 137, 164)', 'rgb(241, 43, 107)', 'rgb(146, 100, 161)', 'rgb(56, 159, 117)', 'rgb(215, 210, 55)', 'rgb(0, 0, 0)'];
   var eyesColors = ['black', 'red', 'blue', 'yellow', 'green'];
   var fireballColors = ['#ee4830', '#30a8ee', '#5ce6c0', '#e848d5', '#e6e848'];
@@ -18,29 +17,52 @@
     return randomElement;
   };
 
-  var wizards = [];
-  for (var j = 0; j < PLAYERS_QUANTITIY; j++) {
-    var wizardName = getRandomNumber(names) + getRandomNumber(lastNames);
-    var wizardCoat = getRandomNumber(coatColors);
-    var wizardEyes = getRandomNumber(eyesColors);
-
-    wizards.push({
-      name: wizardName,
-      coat: wizardCoat,
-      eyes: wizardEyes
-    });
-  }
-
-  for (var i = 0; i < PLAYERS_QUANTITIY; i++) {
+  function renderWizard(wizard) {
     var wizardElement = similarWizardTemplate.cloneNode(true);
-    wizardElement.querySelector('.setup-similar-label').textContent = wizards[i].name;
-    wizardElement.querySelector('.wizard-coat').style.fill = wizards[i].coat;
-    wizardElement.querySelector('.wizard-eyes').style.fill = wizards[i].eyes;
+    wizardElement.querySelector('.setup-similar-label').textContent = wizard.name;
+    wizardElement.querySelector('.wizard-coat').style.fill = wizard.colorCoat;
+    wizardElement.querySelector('.wizard-eyes').style.fill = wizard.colorEyes;
+    return wizardElement;
   }
 
-  similarListElement.appendChild(wizardElement);
+  var successHandler = function (wizards) {
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < PLAYERS_QUANTITIY; i++) {
+      fragment.appendChild(renderWizard(getRandomNumber(wizards)));
+    }
+    similarListElement.appendChild(fragment);
+    document.querySelector('.setup-similar').classList.remove('hidden');
+  };
 
-  document.querySelector('.setup-similar').classList.remove('hidden');
+  var errorHandler = function (errorMessage) {
+    var node = document.createElement('div');
+    node.style = 'z-index: 100; margin: 0 auto; text-align: center; background-color: red;';
+    node.style.position = 'absolute';
+    node.style.left = 0;
+    node.style.right = 0;
+    node.style.fontSize = '30px';
+    node.textContent = errorMessage;
+    document.body.insertAdjacentElement('afterbegin', node);
+  };
+
+  window.backend.load(successHandler, errorHandler);
+
+  var form = userDialog.querySelector('.setup-wizard-form');
+  // var submitHandler = function (evt) {
+  //   window.backend.save(new FormData(form), function () {
+  //     userDialog.classList.add('hidden');
+  //   });
+  //   evt.preventDefault();
+  // };
+  // form.addEventListener('submit', submitHandler);
+
+  form.addEventListener('submit', function (evt) {
+    window.backend.save(new FormData(form), function () {
+      userDialog.classList.add('hidden');
+    }, errorHandler);
+    evt.preventDefault();
+  });
+
 
   var setupWizard = document.querySelector('.setup-wizard');
   var setupFireballWrap = document.querySelector('.setup-fireball-wrap');
@@ -70,7 +92,5 @@
     fireballMainInput.value = randomSetupFireball;
   });
 
-  var SetupWizardForm = document.querySelector('.setup-wizard-form');
-
-  SetupWizardForm.action = 'https://javascript.pages.academy/code-and-magick';
+  // form.action = 'https://javascript.pages.academy/code-and-magick';
 })();
